@@ -1,0 +1,83 @@
+
+Anchor
+Solana Sealevel Framework
+
+Build Status Tutorials Discord Chat License
+
+Anchor is a framework for Solana's Sealevel runtime providing several convenient developer tools for writing smart contracts.
+
+Rust eDSL for writing Solana programs
+IDL specification
+TypeScript package for generating clients from IDL
+CLI and workspace management for developing complete applications
+If you're familiar with developing in Ethereum's Solidity, Truffle, web3.js, then the experience will be familiar. Although the DSL syntax and semantics are targeted at Solana, the high level flow of writing RPC request handlers, emitting an IDL, and generating clients from IDL is the same.
+
+Getting Started
+For a quickstart guide and in depth tutorials, see the anchor book and the older documentation that is being phased out. To jump straight to examples, go here. For the latest Rust and TypeScript API documentation, see docs.rs and the typedoc.
+
+Packages
+Package	Description	Version	Docs
+anchor-lang	Rust primitives for writing programs on Solana	Crates.io	Docs.rs
+anchor-spl	CPI clients for SPL programs on Solana	crates	Docs.rs
+anchor-client	Rust client for Anchor programs	crates	Docs.rs
+@project-serum/anchor	TypeScript client for Anchor programs	npm	Docs
+@project-serum/anchor-cli	CLI to support building and managing an Anchor workspace	npm	Docs
+Note
+Anchor is in active development, so all APIs are subject to change.
+This code is unaudited. Use at your own risk.
+Examples
+Here's a counter program, where only the designated authority can increment the count.
+
+use anchor_lang::prelude::*;
+
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+#[program]
+mod counter {
+    use super::*;
+
+    pub fn initialize(ctx: Context<Initialize>, start: u64) -> Result<()> {
+        let counter = &mut ctx.accounts.counter;
+        counter.authority = *ctx.accounts.authority.key;
+        counter.count = start;
+        Ok(())
+    }
+
+    pub fn increment(ctx: Context<Increment>) -> Result<()> {
+        let counter = &mut ctx.accounts.counter;
+        counter.count += 1;
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(init, payer = authority, space = 48)]
+    pub counter: Account<'info, Counter>,
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Increment<'info> {
+    #[account(mut, has_one = authority)]
+    pub counter: Account<'info, Counter>,
+    pub authority: Signer<'info>,
+}
+
+#[account]
+pub struct Counter {
+    pub authority: Pubkey,
+    pub count: u64,
+}
+For more, see the examples and tests directories.
+
+License
+Anchor is licensed under Apache 2.0.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in Anchor by you, as defined in the Apache-2.0 license, shall be licensed as above, without any additional terms or conditions.
+
+Contribution
+Thank you for your interest in contributing to Anchor! Please see the CONTRIBUTING.md to learn how.
+
+Thanks ❤️
